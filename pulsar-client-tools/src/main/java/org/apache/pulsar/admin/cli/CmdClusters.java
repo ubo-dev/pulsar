@@ -118,18 +118,8 @@ public class CmdClusters extends CmdBase {
         void run() throws PulsarAdminException {
             String cluster = getOneArgument(params);
 
-            // deletes cluster from tenant's allowed clusters
             for (String tenant : getAdmin().tenants().getTenants()) {
-                Set<String> clusters = getAdmin().tenants().getTenantInfo(tenant).getAllowedClusters();
-                clusters.remove(cluster);
-                getAdmin().tenants().updateTenant(tenant, TenantInfo.builder()
-                        .adminRoles(getAdmin().tenants().getTenantInfo(tenant).getAdminRoles())
-                        .allowedClusters(clusters)
-                        .build());
-            }
-
-            if (deleteAll) {
-                for (String tenant : getAdmin().tenants().getTenants()) {
+                if (deleteAll) {
                     for (String namespace : getAdmin().namespaces().getNamespaces(tenant)) {
                         // Partitioned topic's schema must be deleted by deletePartitionedTopic()
                         // but not delete() for each partition
@@ -142,6 +132,13 @@ public class CmdClusters extends CmdBase {
                         getAdmin().namespaces().deleteNamespace(namespace, true);
                     }
                     getAdmin().tenants().deleteTenant(tenant);
+                } else {
+                    Set<String> clusters = getAdmin().tenants().getTenantInfo(tenant).getAllowedClusters();
+                    clusters.remove(cluster);
+                    getAdmin().tenants().updateTenant(tenant, TenantInfo.builder()
+                            .adminRoles(getAdmin().tenants().getTenantInfo(tenant).getAdminRoles())
+                            .allowedClusters(clusters)
+                            .build());
                 }
             }
 
