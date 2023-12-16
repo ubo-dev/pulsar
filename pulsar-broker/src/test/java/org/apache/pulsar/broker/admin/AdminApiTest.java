@@ -19,9 +19,11 @@
 package org.apache.pulsar.broker.admin;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -66,6 +68,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.mledger.ManagedLedgerInfo;
 import org.apache.bookkeeper.mledger.impl.PositionImpl;
+import org.apache.pulsar.admin.cli.CmdClusters;
 import org.apache.pulsar.broker.BrokerTestUtil;
 import org.apache.pulsar.broker.PulsarServerException;
 import org.apache.pulsar.broker.PulsarService;
@@ -292,6 +295,8 @@ public class AdminApiTest extends MockedPulsarServiceBaseTest {
     public void clusters() throws Exception {
         admin.clusters().createCluster("usw",
                 ClusterData.builder().serviceUrl("http://broker.messaging.use.example.com:8080").build());
+        admin.tenants().createTenant("test_tenant",
+                TenantInfo.builder().adminRoles(Set.of("role1","role2")).allowedClusters(Set.of("test","usw")).build());
         // "test" cluster is part of config-default cluster and it's znode gets created when PulsarService creates
         // failure-domain znode of this default cluster
         assertEquals(admin.clusters().getClusters(), List.of("test", "usw"));
@@ -320,6 +325,9 @@ public class AdminApiTest extends MockedPulsarServiceBaseTest {
         admin.clusters().deleteCluster("usw");
         Awaitility.await()
                 .untilAsserted(() -> assertEquals(admin.clusters().getClusters(), List.of("test")));
+
+        assertEquals(admin.tenants().getTenantInfo("test_tenant").getAllowedClusters(), Set.of("test"));
+
 
         deleteNamespaceWithRetry("prop-xyz/ns1", false);
         admin.clusters().deleteCluster("test");

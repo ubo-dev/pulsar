@@ -457,6 +457,12 @@
       <artifactId>pulsar-package-filesystem-storage</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.pulsar</groupId>
+      <artifactId>pulsar-client-tools</artifactId>
+      <version>3.2.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
